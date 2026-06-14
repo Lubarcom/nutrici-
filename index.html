@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestor de Nutrició Interactiu</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 font-sans min-h-screen">
+
+    <header class="bg-emerald-600 text-white shadow-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <h1 class="text-2xl font-bold flex items-center gap-2">
+                🍏 NutriCanvas <span class="text-xs bg-emerald-700 px-2 py-1 rounded">v1.0</span>
+            </h1>
+            <nav class="flex gap-2">
+                <button onclick="switchTab('calculadora')" id="btn-calculadora" class="tab-btn bg-emerald-700 px-4 py-2 rounded-lg font-medium transition shadow">Calculadora</button>
+                <button onclick="switchTab('historial')" id="btn-historial" class="tab-btn hover:bg-emerald-500 px-4 py-2 rounded-lg font-medium transition">Historial (Memòria)</button>
+                <button onclick="switchTab('ingredients')" id="btn-ingredients" class="tab-btn hover:bg-emerald-500 px-4 py-2 rounded-lg font-medium transition">Ingredients</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        
+        <section id="tab-calculadora" class="tab-content block">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                
+                <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 h-fit">
+                    <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2 text-emerald-600">
+                        ➕ Afegir a l'Àpat
+                    </h2>
+                    <div class="space-y-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Selecciona l'Aliment</label>
+                            <select id="calc-aliment" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                                </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Quantitat (en grams)</label>
+                            <input type="number" id="calc-grams" value="100" min="1" class="w-full p-2.5 bg-gray-50 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:outline-none">
+                        </div>
+                        <button onclick="addFoodToMeal()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-medium py-2.5 rounded-lg transition shadow-sm cursor-pointer">
+                            Afegir a la taula
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-2 space-y-6">
+                    <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-xl font-bold text-gray-900">🍽️ Àpat Actual</h2>
+                            <button onclick="clearCurrentMeal()" class="text-sm text-red-600 hover:underline">Buidar àpat</button>
+                        </div>
+                        
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left border-collapse">
+                                <thead>
+                                    <tr class="border-b border-gray-200 text-gray-500 text-sm">
+                                        <th class="pb-3 font-medium">Aliment</th>
+                                        <th class="pb-3 font-medium text-right">Grams</th>
+                                        <th class="pb-3 font-medium text-right">Kcal</th>
+                                        <th class="pb-3 font-medium text-right">Prot (g)</th>
+                                        <th class="pb-3 font-medium text-right">HC (g)</th>
+                                        <th class="pb-3 font-medium text-right">Greix (g)</th>
+                                        <th class="pb-3 text-center">Acció</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="meal-table-body" class="divide-y divide-gray-100 text-sm">
+                                    </tbody>
+                                <tfoot class="font-bold text-gray-900 bg-gray-50">
+                                    <tr id="meal-table-footer">
+                                        </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div id="evaluation-box" class="bg-emerald-50 border border-emerald-200 p-6 rounded-2xl hidden">
+                        <h3 class="font-bold text-emerald-900 mb-2 flex items-center gap-2">
+                            📊 Valoració de l'Àpat:
+                        </h3>
+                        <p id="evaluation-text" class="text-emerald-800 text-sm mb-4">
+                            Afegeix aliments per veure la valoració nutricional d'aquest àpat.
+                        </p>
+                        <div class="pt-4 border-t border-emerald-200 flex flex-col sm:flex-row gap-3 items-end">
+                            <div class="w-full">
+                                <label class="block text-xs font-semibold text-emerald-900 mb-1">Nom de l'àpat (ex: Esmorzar, Dinar...)</label>
+                                <input type="text" id="meal-name" placeholder="El meu àpat" class="w-full p-2 bg-white border border-emerald-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                            </div>
+                            <button onclick="saveMealToHistory()" class="w-full sm:w-auto bg-emerald-700 hover:bg-emerald-800 text-white font-medium px-6 py-2 rounded-lg text-sm transition shadow-sm shrink-0 cursor-pointer">
+                                Guardar a la Memòria
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-historial" class="tab-content hidden">
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-xl font-bold text-gray-900 flex items-center gap-2">
+                        📅 Memòria d'Àpats Guardats
+                    </h2>
+                    <button onclick="clearHistory()" class="text-sm bg-red-50 hover:bg-red-100 text-red-600 px-3 py-1.5 rounded-lg font-medium transition">
+                        Esborrar Historial
+                    </button>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-200 text-gray-500 text-sm">
+                                <th class="pb-3 font-medium">Data</th>
+                                <th class="pb-3 font-medium">Àpat</th>
+                                <th class="pb-3 font-medium text-right">Calories Totals</th>
+                                <th class="pb-3 font-medium text-right">Proteïnes</th>
+                                <th class="pb-3 font-medium text-right">Carbohidrats</th>
+                                <th class="pb-3 font-medium text-right">Greixos</th>
+                            </tr>
+                        </thead>
+                        <tbody id="history-table-body" class="divide-y divide-gray-100 text-sm">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="tab-ingredients" class="tab-content hidden space-y-8">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <h2 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2 text-emerald-600">
+                    🥦 Afegir Nou Ingredient a la Base de Dades
+                </h2>
+                <form id="ingredient-form" onsubmit="addNewIngredient(event)" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 items-end">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Nom</label>
+                        <input type="text" id="ing-name" required placeholder="Ex: Pit de pollastre" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Espècie / Categoria</label>
+                        <select id="ing-category" required class="w-full p-2 border border-gray-300 rounded-lg text-sm bg-white">
+                            <option value="Cereals">Cereals</option>
+                            <option value="Verdures">Verdures</option>
+                            <option value="Fruites">Fruites</option>
+                            <option value="Carn">Carn</option>
+                            <option value="Peixos">Peixos</option>
+                            <option value="Lactis">Lactis / Ous</option>
+                            <option value="Altres">Altres</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Kcal (per 100g)</label>
+                        <input type="number" id="ing-kcal" required min="0" placeholder="0" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Prot g (per 100g)</label>
+                        <input type="number" id="ing-prot" required min="0" step="0.1" placeholder="0" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">HC g (per 100g)</label>
+                        <input type="number" id="ing-carbs" required min="0" step="0.1" placeholder="0" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">Greix g (per 100g)</label>
+                        <input type="number" id="ing-fat" required min="0" step="0.1" placeholder="0" class="w-full p-2 border border-gray-300 rounded-lg text-sm">
+                    </div>
+                    <div class="sm:col-span-2 md:col-span-3 lg:col-span-6 flex justify-end">
+                        <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-medium px-6 py-2 rounded-lg text-sm transition shadow-sm cursor-pointer">
+                            Guardar Ingredient
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <h2 class="text-xl font-bold text-gray-900">📋 Llista d'Ingredients (Valors per 100g)</h2>
+                    
+                    <div class="flex items-center gap-2 w-full sm:w-auto">
+                        <label class="text-sm font-medium text-gray-600 shrink-0">Filtrar per:</label>
+                        <select id="filter-category" onchange="renderIngredientsList()" class="p-2 border border-gray-300 rounded-lg text-sm bg-white w-full sm:w-48">
+                            <option value="Tots">Tots els aliments</option>
+                            <option value="Cereals">Cereals</option>
+                            <option value="Verdures">Verdures</option>
+                            <option value="Fruites">Fruites</option>
+                            <option value="Carn">Carn</option>
+                            <option value="Peixos">Peixos</option>
+                            <option value="Lactis">Lactis / Ous</option>
+                            <option value="Altres">Altres</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-gray-200 text-gray-500 text-sm">
+                                <th class="pb-3 font-medium">Aliment</th>
+                                <th class="pb-3 font-medium">Espècie / Categoria</th>
+                                <th class="pb-3 font-medium text-right">Kcal</th>
+                                <th class="pb-3 font-medium text-right">Proteïnes (g)</th>
+                                <th class="pb-3 font-medium text-right">Carbohidrats (g)</th>
+                                <th class="pb-3 font-medium text-right">Greixos (g)</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ingredients-list-body" class="divide-y divide-gray-100 text-sm">
+                            </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script>
+        // Base de dades inicial d'ingredients de mostra
+        const defaultIngredients = [
+            { name: "Arròs integral", category: "Cereals", kcal: 111, prot: 2.6, carbs: 23, fat: 0.9 },
+            { name: "Avena", category: "Cereals", kcal: 389, prot: 16.9, carbs: 66.3, fat: 6.9 },
+            { name: "Pit de pollastre", category: "Carn", kcal: 165, prot: 31, carbs: 0, fat: 3.6 },
+            { name: "Filet de vedella", category: "Carn", kcal: 172, prot: 24, carbs: 0, fat: 8.5 },
+            { name: "Salmó fresc", category: "Peixos", kcal: 208, prot: 20, carbs: 0, fat: 13 },
+            { name: "Lluç", category: "Peixos", kcal: 89, prot: 18, carbs: 0, fat: 1.8 },
+            { name: "Poma", category: "Fruites", kcal: 52, prot: 0.3, carbs: 14, fat: 0.2 },
+            { name: "Plàtan", category: "Fruites", kcal: 89, prot: 1.1, carbs: 22.8, fat: 0.3 },
+            { name: "Espinacs", category: "Verdures", kcal: 23, prot: 2.9, carbs: 3.6, fat: 0.4 },
+            { name: "Bròquil", category: "Verdures", kcal: 34, prot: 2.8, carbs: 7, fat: 0.4 },
+            { name: "Ou sencer", category: "Lactis", kcal: 155, prot: 13, carbs: 1.1, fat: 11 }
+        ];
+
+        // Carregar dades de localStorage o utilitzar les per defecte
+        let ingredients = JSON.parse(localStorage.getItem('nutri_ingredients')) || defaultIngredients;
+        let currentMeal = [];
+        let history = JSON.parse(localStorage.getItem('nutri_history')) || [];
+
+        // Inicialitzar l'aplicació
+        window.onload = function() {
+            updateIngredientsDropdown();
+            renderIngredientsList();
+            renderCurrentMeal();
+            renderHistory();
+        };
+
+        // Canviar de pestanya (Tabs)
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.replace('block', 'hidden'));
+            document.getElementById(`tab-${tabName}`).classList.replace('hidden', 'block');
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('bg-emerald-700', 'shadow'));
+            document.getElementById(`btn-${tabName}`).classList.add('bg-emerald-700', 'shadow');
+        }
+
+        // Guardar dades a LocalStorage
+        function saveData() {
+            localStorage.setItem('nutri_ingredients', JSON.stringify(ingredients));
+            localStorage.setItem('nutri_history', JSON.stringify(history));
+        }
+
+        // Actualitzar el desplegable de la calculadora
+        function updateIngredientsDropdown() {
+            const select = document.getElementById('calc-aliment');
+            select.innerHTML = '';
+            
+            // Ordenar alfabèticament
+            ingredients.sort((a, b) => a.name.localeCompare(b.name));
+
+            ingredients.forEach((ing, index) => {
+                const option = document.createElement('option');
+                option.value = ing.name;
+                option.textContent = `${ing.name} (${ing.category})`;
+                select.appendChild(option);
+            });
+        }
+
+        // Ordenar i llistar els ingredients a la pestanya de llista
+        function renderIngredientsList() {
+            const tbody = document.getElementById('ingredients-list-body');
+            const filter = document.getElementById('filter-category').value;
+            tbody.innerHTML = '';
+
+            // Ordenar alfabèticament
+            ingredients.sort((a, b) => a.name.localeCompare(b.name));
+
+            ingredients.forEach(ing => {
+                if (filter !== 'Tots' && ing.category !== filter) return;
+
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 font-medium text-gray-900">${ing.name}</td>
+                    <td class="py-3"><span class="px-2 py-1 bg-gray-100 text-gray-600 rounded text-xs font-semibold">${ing.category}</span></td>
+                    <td class="py-3 text-right font-mono">${ing.kcal}</td>
+                    <td class="py-3 text-right font-mono">${ing.prot}g</td>
+                    <td class="py-3 text-right font-mono">${ing.carbs}g</td>
+                    <td class="py-3 text-right font-mono">${ing.fat}g</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Afegir un nou aliment personalitzat a la base de dades
+        function addNewIngredient(e) {
+            e.preventDefault();
+            const name = document.getElementById('ing-name').value.trim();
+            const category = document.getElementById('ing-category').value;
+            const kcal = parseFloat(document.getElementById('ing-kcal').value);
+            const prot = parseFloat(document.getElementById('ing-prot').value);
+            const carbs = parseFloat(document.getElementById('ing-carbs').value);
+            const fat = parseFloat(document.getElementById('ing-fat').value);
+
+            // Evitar duplicats exactes de nom
+            if (ingredients.some(ing => ing.name.toLowerCase() === name.toLowerCase())) {
+                alert('Aquest aliment ja existeix a la llista.');
+                return;
+            }
+
+            ingredients.push({ name, category, kcal, prot, carbs, fat });
+            saveData();
+            
+            // Reset formulari i refrescar pantalles
+            document.getElementById('ingredient-form').reset();
+            updateIngredientsDropdown();
+            renderIngredientsList();
+            alert(`"${name}" s'ha afegit correctament!`);
+        }
+
+        // Afegir aliment a l'àpat actual
+        function addFoodToMeal() {
+            const foodName = document.getElementById('calc-aliment').value;
+            const grams = parseFloat(document.getElementById('calc-grams').value);
+
+            if (!foodName || isNaN(grams) || grams <= 0) {
+                alert('Si us plau, introdueix una quantitat vàlida.');
+                return;
+            }
+
+            const foodData = ingredients.find(ing => ing.name === foodName);
+            
+            // Calcular valors proporcionals als grams (els de la base de dades són per 100g)
+            const factor = grams / 100;
+            const item = {
+                name: foodData.name,
+                grams: grams,
+                kcal: Math.round(foodData.kcal * factor),
+                prot: parseFloat((foodData.prot * factor).toFixed(1)),
+                carbs: parseFloat((foodData.carbs * factor).toFixed(1)),
+                fat: parseFloat((foodData.fat * factor).toFixed(1))
+            };
+
+            currentMeal.push(item);
+            renderCurrentMeal();
+        }
+
+        // Eliminar element de l'àpat actual
+        function removeFoodFromMeal(index) {
+            currentMeal.splice(index, 1);
+            renderCurrentMeal();
+        }
+
+        // Buidar completament l'àpat actual
+        function clearCurrentMeal() {
+            currentMeal = [];
+            renderCurrentMeal();
+        }
+
+        // Renderitzar la taula de l'àpat i calcular els totals i la valoració
+        function renderCurrentMeal() {
+            const tbody = document.getElementById('meal-table-body');
+            const footer = document.getElementById('meal-table-footer');
+            const evalBox = document.getElementById('evaluation-box');
+            tbody.innerHTML = '';
+
+            if (currentMeal.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="py-8 text-center text-gray-400 italic">L'àpat està buit. Comença afegint algun aliment de l'esquerra.</td></tr>`;
+                footer.innerHTML = '';
+                evalBox.classList.add('hidden');
+                return;
+            }
+
+            let totalGrams = 0, totalKcal = 0, totalProt = 0, totalCarbs = 0, totalFat = 0;
+
+            currentMeal.forEach((item, index) => {
+                totalGrams += item.grams;
+                totalKcal += item.kcal;
+                totalProt += item.prot;
+                totalCarbs += item.carbs;
+                totalFat += item.fat;
+
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td class="py-3 font-medium text-gray-900">${item.name}</td>
+                    <td class="py-3 text-right font-mono">${item.grams}g</td>
+                    <td class="py-3 text-right font-mono">${item.kcal}</td>
+                    <td class="py-3 text-right font-mono">${item.prot}g</td>
+                    <td class="py-3 text-right font-mono">${item.carbs}g</td>
+                    <td class="py-3 text-right font-mono">${item.fat}g</td>
+                    <td class="py-3 text-center">
+                        <button onclick="removeFoodFromMeal(${index})" class="text-red-500 hover:text-red-700 font-bold">✕</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Arrodonir totals decimals
+            totalProt = parseFloat(totalProt.toFixed(1));
+            totalCarbs = parseFloat(totalCarbs.toFixed(1));
+            totalFat = parseFloat(totalFat.toFixed(1));
+
+            // Actualitzar peu de taula amb els totals
+            footer.innerHTML = `
+                <td class="py-3 pl-2">Total:</td>
+                <td class="py-3 text-right font-mono">${totalGrams}g</td>
+                <td class="py-3 text-right font-mono">${totalKcal} kcal</td>
+                <td class="py-3 text-right font-mono">${totalProt}g</td>
+                <td class="py-3 text-right font-mono">${totalCarbs}g</td>
+                <td class="py-3 text-right font-mono">${totalFat}g</td>
+                <td></td>
+            `;
+
+            // Mostrar i processar la valoració nutricional de l'àpat
+            evalBox.classList.remove('hidden');
+            evaluateMeal(totalKcal, totalProt, totalCarbs, totalFat);
+        }
+
+        // Algorisme de valoració de l'àpat segons el repartiment de macros
+        function evaluateMeal(kcal, prot, carbs, fat) {
+            const evalText = document.getElementById('evaluation-text');
+            
+            if (kcal === 0) return;
+
+            // Calcular el percentatge calòric de cada macronutrient
+            // 1g proteïna = 4 kcal, 1g carbohidrat = 4 kcal, 1g greix = 9 kcal
+            const protKcal = prot * 4;
+            const carbsKcal = carbs * 4;
+            const fatKcal = fat * 9;
+            const calculatedSum = protKcal + carbsKcal + fatKcal;
+
+            let veredicte = "";
+
+            if (kcal < 200) {
+                veredicte = "🥗 **Àpat molt lleuger o snack.** Baix en calories, ideal entre hores, però potser insuficient com a plat principal.";
+            } else if (protKcal / calculatedSum > 0.30) {
+                veredicte = "🥩 **Àpat hiperproteic.** Excel·lent per a la recuperació muscular i la sacietat. Recorda acompanyar-lo amb una bona font de fibra vegetal.";
+            } else if (carbsKcal / calculatedSum > 0.55) {
+                veredicte = "🌾 **Àpat alt en carbohidrats.** Ideal com a font d'energia abans d'un entrenament intens o per a primeres hores del dia.";
+            } else if (fatKcal / calculatedSum > 0.40) {
+                veredicte = "🥑 **Àpat amb alt contingut de greixos.** Controla que provinguin de fons saludables (oli d'oliva, fruits secs, peix blau). Modera les porcions si el teu objectiu és perdre pes.";
+            } else {
+                veredicte = "⚖️ **Àpat molt equilibrat.** Presenta una bona distribució entre proteïnes, hidrats de carboni i greixos sans. Ideal per al manteniment d'una dieta saludable.";
+            }
+
+            evalText.innerHTML = `${veredicte} <br><br> <span class="text-xs text-emerald-700">Resum de l'aportació: Proteïnes: ${Math.round((protKcal/calculatedSum)*100 || 0)}% | Carbohidrats: ${Math.round((carbsKcal/calculatedSum)*100 || 0)}% | Greixos: ${Math.round((fatKcal/calculatedSum)*100 || 0)}%</span>`;
+        }
+
+        // Guardar l'àpat actual a l'historial (Memòria)
+        function saveMealToHistory() {
+            let mealName = document.getElementById('meal-name').value.trim();
+            if (!mealName) mealName = "Àpat sense nom";
+
+            let totalKcal = 0, totalProt = 0, totalCarbs = 0, totalFat = 0;
+            currentMeal.forEach(item => {
+                totalKcal += item.kcal;
+                totalProt += item.prot;
+                totalCarbs += item.carbs;
+                totalFat += item.fat;
+            });
+
+            const now = new Date();
+            const dataString = `${now.getDate().toString().padStart(2, '0')}/${(now.getMonth() + 1).toString().padStart(2, '0')}/${now.getFullYear()} a les ${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}`;
+
+            const historyEntry = {
+                date: dataString,
+                name: mealName,
+                kcal: totalKcal,
+                prot: parseFloat(totalProt.toFixed(1)),
+                carbs: parseFloat(totalCarbs.toFixed(1)),
+                fat: parseFloat(totalFat.toFixed(1))
+            };
+
+            history.unshift(historyEntry); // Afegir al principi de la llista
+            saveData();
+            renderHistory();
+            
+            // Netejar entrada
+            document.getElementById('meal-name').value = '';
+            clearCurrentMeal();
+            
+            alert('Àpat guardat correctament a l'historial!');
+            switchTab('historial'); // Et porta a veure la memòria
+        }
+
+        // Renderitzar l'historial desat
+        function renderHistory() {
+            const tbody = document.getElementById('history-table-body');
+            tbody.innerHTML = '';
+
+            if (history.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="py-8 text-center text-gray-400 italic">No hi ha cap àpat guardat a la memòria encara.</td></tr>`;
+                return;
+            }
+
+            history.forEach(item => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-gray-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="py-3 font-medium text-gray-500 text-xs">${item.date}</td>
+                    <td class="py-3 font-bold text-gray-900">${item.name}</td>
+                    <td class="py-3 text-right font-mono text-emerald-600 font-semibold">${item.kcal} kcal</td>
+                    <td class="py-3 text-right font-mono">${item.prot}g</td>
+                    <td class="py-3 text-right font-mono">${item.carbs}g</td>
+                    <td class="py-3 text-right font-mono">${item.fat}g</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Esborrar tot l'historial
+        function clearHistory() {
+            if (confirm('Estàs segur que vols buidar tota la memòria de l\'historial? Aquesta acció no es pot desfer.')) {
+                history = [];
+                saveData();
+                renderHistory();
+            }
+        }
+    </script>
+</body>
+</html>
